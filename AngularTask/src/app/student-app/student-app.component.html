@@ -1,0 +1,225 @@
+<div class="container">
+    <div class="form-card">
+        <mat-card-header>
+            <mat-card-title>
+                {{
+                studentUpdateId !== null ? "Update Student Information" : "Student Registration Form"
+                }}
+            </mat-card-title>
+        </mat-card-header>
+        <div class="center-container">
+            <mat-card class="form-cards">
+                <mat-card-content>
+                    <form [formGroup]="studentForm" (ngSubmit)="onSubmit()">
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>First Name</mat-label>
+                                <input matInput formControlName="firstName" placeholder="Enter first name"
+                                    [errorStateMatcher]="matcher" />
+                                <mat-error *ngIf="studentForm.get('firstName')?.hasError('required')">
+                                    First Name is required
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Last Name</mat-label>
+                                <input matInput formControlName="lastName" placeholder="Enter last name"
+                                    [errorStateMatcher]="matcher" />
+                                <mat-error *ngIf="studentForm.get('lastName')?.hasError('required')">
+                                    Last Name is required
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Email</mat-label>
+                                <input matInput formControlName="email" placeholder="Historia@mail.com" type="email"
+                                    [errorStateMatcher]="matcher" />
+                                <mat-error *ngIf="studentForm.get('email')?.hasError('required')">
+                                    Email is required
+                                </mat-error>
+                                <mat-error *ngIf="studentForm.get('email')?.hasError('email')">
+                                    Invalid email format
+                                </mat-error>
+                            </mat-form-field>
+
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Phone Number</mat-label>
+                                <input matInput formControlName="phone" placeholder="10 digit number" maxlength="10"
+                                    [errorStateMatcher]="matcher" />
+                                <mat-error *ngIf="studentForm.get('phone')?.hasError('required')">
+                                    Phone is required
+                                </mat-error>
+                                <mat-error *ngIf="studentForm.get('phone')?.hasError('pattern')">
+                                    Enter valid 10 digit number
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+
+
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Date of Birth</mat-label>
+                                <input matInput [matDatepicker]="picker" formControlName="dob" [max]="maxDate"
+                                    [errorStateMatcher]="matcher" />
+                                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                                <mat-datepicker #picker></mat-datepicker>
+                                <mat-error *ngIf="studentForm.get('dob')?.hasError('required')">
+                                    Date of Birth is required
+                                </mat-error>
+                            </mat-form-field>
+
+
+                            <mat-form-field appearance="outline" class="half-width">
+                                <mat-label>Course</mat-label>
+
+                                <input matInput formControlName="course" [matAutocomplete]="auto"
+                                    [errorStateMatcher]="matcher" />
+
+                                <mat-autocomplete #auto="matAutocomplete">
+                                    <mat-option *ngFor="let course of availableCourses" [value]="course">
+                                        {{ course }}
+                                    </mat-option>
+                                </mat-autocomplete>
+
+                                <mat-error *ngIf="studentForm.get('course')?.hasError('required')">
+                                    Course is required
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row">
+                            <mat-form-field appearance="outline" class="full-width">
+                                <mat-label>Address</mat-label>
+                                <textarea matInput formControlName="address" rows="3"
+                                    placeholder="Enter complete address" [errorStateMatcher]="matcher"></textarea>
+                                <mat-error *ngIf="studentForm.get('address')?.hasError('required')">
+                                    Address is required
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-row">
+
+
+                            <div class="gender-section-inline">
+                                <label class="section-label">Gender :</label>
+
+                                <mat-radio-group formControlName="gender" class="radio-group-inline">
+                                    <mat-radio-button value="Male">Male</mat-radio-button>
+                                    <mat-radio-button value="Female">Female</mat-radio-button>
+                                    <mat-radio-button value="Other">Other</mat-radio-button>
+                                </mat-radio-group>
+                            </div>
+
+                            <mat-error
+                                *ngIf="studentForm.get('gender')?.hasError('required') && studentForm.get('gender')?.touched">
+                                Please select gender
+                            </mat-error>
+
+
+                        </div>
+
+                        <div class="button-row">
+                            <button mat-raised-button color="primary" type="submit" [disabled]="!studentForm.valid">
+                                {{ studentUpdateId !== null ? 'Update' : 'Submit' }}
+                            </button>
+                            <button mat-raised-button type="button" (click)="cancelEdit()">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <mat-card class="table-card" *ngIf="studentData.data.length > 0">
+            <mat-card-header>
+                <mat-card-title>Registered Students</mat-card-title>
+            </mat-card-header>
+
+            <mat-card-content>
+                <table mat-table [dataSource]="studentData" class="student-table">
+                    <ng-container matColumnDef="id">
+                        <th mat-header-cell *matHeaderCellDef> ID </th>
+                        <td mat-cell *matCellDef="let student"> {{student.id}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef> Name </th>
+                        <td mat-cell *matCellDef="let student">
+                            {{ student.firstName }} {{ student.lastName }}
+                        </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="email">
+                        <th mat-header-cell *matHeaderCellDef> Email </th>
+                        <td mat-cell *matCellDef="let student"> {{student.email}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="phone">
+                        <th mat-header-cell *matHeaderCellDef> Phone </th>
+                        <td mat-cell *matCellDef="let student"> {{student.phone}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="address">
+                        <th mat-header-cell *matHeaderCellDef> Address </th>
+                        <td mat-cell *matCellDef="let student">
+                            {{ student.address }}
+                        </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="dob">
+                        <th mat-header-cell *matHeaderCellDef> DOB </th>
+                        <td mat-cell *matCellDef="let student">
+                            {{ formatDate(student.dob) }}
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="course">
+                        <th mat-header-cell *matHeaderCellDef> Course </th>
+                        <td mat-cell *matCellDef="let student"> {{student.course}} </td>
+                    </ng-container>
+
+
+                    <ng-container matColumnDef="gender">
+                        <th mat-header-cell *matHeaderCellDef> Gender </th>
+                        <td mat-cell *matCellDef="let student"> {{student.gender}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef> Actions </th>
+                        <td mat-cell *matCellDef="let student">
+                            <button mat-icon-button color="primary" (click)="updateSelectedStudent(student)"
+                                matTooltip="Edit Student">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deleteSelectedStudent(student.id)"
+                                matTooltip="Delete Student">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                </table>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card" *ngIf="studentData.data.length === 0">
+            <mat-card-content>
+                <div class="no-data">
+                    <mat-icon style="font-size: 48px; height: 48px; width: 48px; color: #9e9e9e;">inbox</mat-icon>
+                    <p>No students registered yet</p>
+                    <p style="font-size: 14px; color: #666;">Get started by registering a student above</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
