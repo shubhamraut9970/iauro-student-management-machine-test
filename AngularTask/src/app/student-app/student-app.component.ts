@@ -66,7 +66,7 @@ export class TouchedErrorStateMatcher implements ErrorStateMatcher {
 
 export class StudentAppComponent implements OnInit {
   studentForm!: FormGroup;
-  studentData = new MatTableDataSource<Student>([]);  // Changed this
+  studentData = new MatTableDataSource<Student>([]);
   displayedColumns: string[] = [
     'id',
     'name',       
@@ -89,12 +89,15 @@ export class StudentAppComponent implements OnInit {
   availableCourses: string[] = [];
   maxDate: Date = new Date();
   matcher = new TouchedErrorStateMatcher();
+  
+  private readonly STORAGE_KEY = 'studentData';
 
-  constructor(private fb: FormBuilder,private dialog: MatDialog) {}
+  constructor(private fb: FormBuilder, private dialog: MatDialog) {}
 
   ngOnInit() {
     this.formValidation();
     this.availableCourses = this.courses;
+    this.loadStudentsFromStorage();
   }
 
   formValidation() {
@@ -109,13 +112,39 @@ export class StudentAppComponent implements OnInit {
       course: ['', Validators.required],
     });
   }
+
+  loadStudentsFromStorage(): void {
+    if (typeof localStorage === 'undefined') return;
+    
+    try {
+      const saveData = localStorage.getItem(this.STORAGE_KEY);
+      if (saveData) {
+        const students = JSON.parse(saveData);
+        students.forEach((student: Student) => {
+          student.dob = new Date(student.dob);
+        });
+        this.studentData.data = students;
+      }
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+    }
+  }
+
+  saveStudentsToStorage(): void {
+    if (typeof localStorage === 'undefined') return;
+    
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.studentData.data));
+    } catch (error) {
+      console.error('Error saving data to localStorage:', error);
+    }
+  }
   
   formatDate(date: Date): string {
     return new Date(date).toLocaleDateString('en-IN');
   }
 
   onSubmit(): void {
-    // console.log(this.studentForm);
     if (this.studentForm.valid) {
       if (this.studentUpdateId !== null) {
         const students = this.studentData.data;
@@ -136,7 +165,8 @@ export class StudentAppComponent implements OnInit {
         };
         this.studentData.data = [...students, newStudent]; 
       }
-      // console.log('Students:', this.studentData.data);
+      
+      this.saveStudentsToStorage();
       this.studentForm.reset();
     }
   }
@@ -155,8 +185,7 @@ export class StudentAppComponent implements OnInit {
     });
   }
 
-
-deleteSelectedStudent(id: number): void {
+  deleteSelectedStudent(id: number): void {
     const student = this.studentData.data.find(s => s.id === id);
     if (!student) return;
 
@@ -174,11 +203,12 @@ deleteSelectedStudent(id: number): void {
         if (index !== -1) {
           students.splice(index, 1);
           this.studentData.data = [...students];
+          
+          this.saveStudentsToStorage();
         }
       }
     });
   }
-
 
   cancelEdit(): void {
     this.studentUpdateId = null;
